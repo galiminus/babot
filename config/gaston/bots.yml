@@ -1,0 +1,4 @@
+:gaston:
+  bots:
+    test:
+      :repository: "git@github.com:phorque/twitter-test-bot.git"
