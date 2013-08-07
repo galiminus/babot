@@ -5,3 +5,4 @@ gem 'sidekiq'
 gem 'gaston'
 gem 'sinatra'
 gem 'git'
+gem "activesupport"

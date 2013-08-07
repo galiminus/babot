@@ -4,6 +4,7 @@ require 'gaston'
 require 'git'
 require 'fileutils'
 require 'bundler'
+require 'active_support'
 
 Gaston.configure do |gaston|
   gaston.env = ENV["RACK_ENV"] || "development"
@@ -11,8 +12,10 @@ Gaston.configure do |gaston|
 end
 
 require 'bot'
+require 'bots/twitter_bot'
 
-Gaston.bots.each do |name, options|
-  puts "Checkout: #{name}"
-  Babot::Bot.new(name, options).pull!
+bots = Babot::Bot.run_all
+
+bots.each do |bot|
+  puts "#{bot.name}: #{bot.when}"
 end
