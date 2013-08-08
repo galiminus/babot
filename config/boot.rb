@@ -1,10 +1,7 @@
-require 'sidekiq'
-require 'twitter'
 require 'gaston'
-require 'git'
 require 'fileutils'
-require 'bundler'
-require 'active_support'
+require 'git'
+require 'active_support/core_ext/string/inflections'
 
 Gaston.configure do |gaston|
   gaston.env = ENV["RACK_ENV"] || "development"
@@ -13,9 +10,3 @@ end
 
 require 'bot'
 require 'bots/twitter_bot'
-
-bots = Babot::Bot.run_all
-
-bots.each do |bot|
-  puts "#{bot.name}: #{bot.when}"
-end
