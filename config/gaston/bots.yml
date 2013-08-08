@@ -1,4 +1,8 @@
 :gaston:
   bots:
     test:
-      :repository: "git@github.com:phorque/twitter-test-bot.git"
+      :repository: git@github.com:phorque/twitter-test-bot.git
+      :consumer_key: lol
+      :consumer_secret: lol
+      :oauth_token: lol
+      :oauth_token_secret: lol

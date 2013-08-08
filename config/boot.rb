@@ -1,6 +1,7 @@
 require 'gaston'
 require 'fileutils'
 require 'git'
+require 'twitter'
 require 'active_support/core_ext/string/inflections'
 
 Gaston.configure do |gaston|
