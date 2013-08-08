@@ -11,6 +11,8 @@ require "capistrano/af83"
 set :repository,  "git@github.com:phorque/babot.git"
 set :scm, :git
 
-after 'deploy:update_code' do
-  run "cd #{current_path} && bundle exec rake bots:update"
+after 'deploy:restart' do
+  upload config, "#{current_path}/config/gaston/bots.yml" if config
+
+  run "cd #{current_path} && bundle exec rake bots:update && bundle exec whenever -f bots/schedule.rb -w"
 end
