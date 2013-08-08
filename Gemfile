@@ -6,3 +6,5 @@ gem 'git'
 gem "activesupport"
 gem 'whenever'
 gem 'rake'
+gem 'capistrano'
+gem 'capistrano-af83'
