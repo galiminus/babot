@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+require 'boson/runner'
+
+class BabotRunner < Boson::Runner
+  def initialize
+    Babot.configure!
+  end
+
+  option :config, type: :string
+  def update(options)
+    Babot.update
+  end
+end
+
+BabotRunner.start

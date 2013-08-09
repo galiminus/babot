@@ -17,7 +17,10 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport"
   s.add_dependency "whenever"
   s.add_dependency "rake"
+  s.add_dependency "boson"
   s.add_dependency "capistrano"
   s.add_dependency "capistrano-af83"
   s.add_dependency "rvm-capistrano"
+
+  s.executables  = ['babot']
 end

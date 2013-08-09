@@ -1,8 +1,9 @@
 PATH
   remote: .
   specs:
-    babot (0.1.0)
+    babot (0.1.2)
       activesupport
+      boson
       capistrano
       capistrano-af83
       gaston
@@ -22,7 +23,8 @@ GEM
       thread_safe (~> 0.1)
       tzinfo (~> 0.3.37)
     addressable (2.3.5)
-    atomic (1.1.10)
+    atomic (1.1.12)
+    boson (1.2.4)
     capistrano (2.15.5)
       highline
       net-scp (>= 1.0.0)
@@ -50,7 +52,7 @@ GEM
     chronic (0.9.1)
     faraday (0.8.8)
       multipart-post (~> 1.2.0)
-    gaston (0.4.1)
+    gaston (0.5.1)
       inflecto
     git (1.2.5)
     highline (1.6.19)
@@ -69,13 +71,13 @@ GEM
     net-ssh-gateway (1.2.0)
       net-ssh (>= 2.6.5)
     rake (10.1.0)
-    rvm-capistrano (1.4.1)
-      capistrano (>= 2.0.0)
+    rvm-capistrano (1.4.3)
+      capistrano (>= 2.15.4)
     shout-bot (0.0.4)
       addressable
     simple_oauth (0.2.0)
     sushi (0.0.2)
-    thread_safe (0.1.0)
+    thread_safe (0.1.2)
       atomic
     twitter (4.8.1)
       faraday (~> 0.8, < 0.10)
