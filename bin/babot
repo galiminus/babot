@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 
 require 'boson/runner'
+require 'pathname'
+
+$:.unshift File.expand_path("../../lib", __FILE__)
+require 'babot'
 
 class BabotRunner < Boson::Runner
   def initialize
@@ -8,7 +12,7 @@ class BabotRunner < Boson::Runner
   end
 
   option :config, type: :string
-  def update(options)
+  def update(options = {})
     Babot.update
   end
 end

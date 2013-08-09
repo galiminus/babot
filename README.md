@@ -1,6 +1,6 @@
 Babot helps you manage your Twitter bots.
 
-The file `config/gaston/bots.yml` contains, for each bot, the git
+The file `~/.babot/config` contains, for each bot, the git
     repository and the API keys.
 
 A bot is a git repository containing :

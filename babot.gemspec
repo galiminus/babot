@@ -12,7 +12,6 @@ Gem::Specification.new do |s|
 
   s.require_path = 'lib'
   s.add_dependency "twitter"
-  s.add_dependency "gaston"
   s.add_dependency "git"
   s.add_dependency "activesupport"
   s.add_dependency "whenever"
