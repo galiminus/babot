@@ -1,17 +1,26 @@
 Babot helps you manage your Twitter bots.
 
-The file `~/.babot/config` contains, for each bot, the git
-    repository and the API keys.
+```
+gem install babot
+```
 
-A bot is a git repository containing :
+```
+Usage: babot [OPTIONS] COMMAND [ARGS]
 
-- a Gemfile
-- a lib directory with a [name_of_the_bot].rb file
+Available commands:
+  add        Add bot [name] from [repository]
+  call       Call bot [name]
+  configure  Configure bot [name]
+  delete     Delete bot [name]
+  dry        Call bot [name] without update
+  dump       Dump bots and configuration in tar file
+  help       Displays help for a command
+  install    Install from tar file [path]
+  list       List bots
+  push       Push to remote server [remote]
+  schedule   Update crontab
+  update     Update bot [name]
 
-Look at https://github.com/phorque/twitter-test-bot for a simple bot
-    example.
-
-A bot inherit from the Babot::Bot class and must implement a `when`
-    method returning a 'cron-style' time. When the time is reached the
-    `call` method will be called and its result will be posted to
-    Twitter.
+Options:
+  -h, --help  Displays this help message
+```
