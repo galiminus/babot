@@ -68,6 +68,14 @@ class Babot
       instanciate(name).call
     end
 
+    def dump
+      
+    end
+
+    def install
+      
+    end
+
     def instanciate(name)
       require Babot.root.join("bots", name, 'lib', name)
 
