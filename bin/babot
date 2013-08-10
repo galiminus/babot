@@ -49,6 +49,11 @@ class BabotRunner < Boson::Runner
   def list
     puts Babot.list
   end
+
+  desc "Dump bots and configuration in tar file [path]"
+  def dump
+    Babot.dump
+  end
 end
 
 BabotRunner.start

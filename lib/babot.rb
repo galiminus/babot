@@ -13,10 +13,8 @@ class Babot
   class << self
 
     def update(name)
-      git = Git.open(root.join("bots", name), :log => Logger.new(STDOUT))
-      git.fetch "origin"
-      git.merge "origin", "master"
-      system "cd #{root.join('bots', name)} && bundle install"
+      run "cd '#{root.join('bots', name)}' && git pull --rebase origin master"
+      run "cd '#{root.join('bots', name)}' && bundle install"
     end
 
     def schedule
@@ -29,15 +27,14 @@ class Babot
           eos
       end
       cron.close
-
-      Whenever::CommandLine.execute(file: cron.path, write: true)
+      run "whenever -w -f '#{cron.path}'"
     end
 
     def add(name, repository)
       if repository =~ /\//
-        FileUtils.ln_s repository, root.join("bots", name)
+        run "ln -s '#{repository}' '#{root.join("bots", name)}'"
       else
-        Git.clone repository, root.join("bots", name)
+        run "git clone '#{repository}' '#{root.join("bots", name)}'"
       end
       File.open(root.join("config", name).to_s, 'w') do |config|
         config.write({ 'consumer_key'           => "",
@@ -48,12 +45,11 @@ class Babot
     end
 
     def delete(name)
-      FileUtils.rm_rf root.join("bots", name)
-      FileUtils.rm_f root.join("config", name)
+      run "rm -rf #{root.join('bots', name)} #{root.join('config', name)}"
     end
 
     def configure(name)
-      system "#{ENV['EDITOR'] || 'nano'} #{root.join("config", name).to_s}"
+      run "#{ENV['EDITOR'] || 'nano'} #{root.join("config", name).to_s}"
     end
 
     def call(name)
@@ -69,11 +65,11 @@ class Babot
     end
 
     def dump
-      
+      run "cd ~ && tar --exclude=.git -cf #{Dir.pwd}/babot-#{Time.now.to_i}.tar .babot"
     end
 
-    def install
-      
+    def install(dump)
+#      run "rm -rf #{root}"
     end
 
     def instanciate(name)
@@ -87,6 +83,11 @@ class Babot
 
     def root
       Pathname.new(ENV["HOME"]).join ".babot"
+    end
+
+    def run(command)
+      puts command
+      system command
     end
   end
 

@@ -12,12 +12,9 @@ Gem::Specification.new do |s|
 
   s.require_path = 'lib'
   s.add_dependency "twitter"
-  s.add_dependency "git"
   s.add_dependency "activesupport"
   s.add_dependency "whenever"
-  s.add_dependency "rake"
   s.add_dependency "boson"
-  s.add_dependency "minitar"
 
   s.executables  = ['babot']
 end

@@ -4,9 +4,6 @@ PATH
     babot (0.2.1)
       activesupport
       boson
-      git
-      minitar
-      rake
       twitter
       whenever
 
@@ -24,13 +21,10 @@ GEM
     chronic (0.9.1)
     faraday (0.8.8)
       multipart-post (~> 1.2.0)
-    git (1.2.5)
     i18n (0.6.4)
-    minitar (0.5.4)
     minitest (4.7.5)
     multi_json (1.7.8)
     multipart-post (1.2.0)
-    rake (10.1.0)
     simple_oauth (0.2.0)
     thread_safe (0.1.2)
       atomic
