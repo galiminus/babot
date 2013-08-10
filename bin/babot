@@ -7,13 +7,41 @@ $:.unshift File.expand_path("../../lib", __FILE__)
 require 'babot'
 
 class BabotRunner < Boson::Runner
-  def initialize
-    Babot.configure!
+  desc "Update bots"
+  def update
+    Babot.update
   end
 
-  option :config, type: :string
-  def update(options = {})
+  desc "Update crontab"
+  def schedule
+    Babot.schedule
+  end
+
+  desc "Call bot [name]"
+  def call(name)
+    Babot.call name
+  end
+
+  desc "Call bot [name] without update"
+  def dry(name)
+    puts Babot.dry(name)
+  end
+
+  desc "Add bot [name] from [repository]"
+  def add(name, repository)
+    Babot.add name, repository
+    Babot.configure name
     Babot.update
+  end
+
+  desc "Delete bot [name]"
+  def delete(name)
+    Babot.delete name
+  end
+
+  desc "Configure bot [name]"
+  def configure(name)
+    Babot.configure name
   end
 end
 

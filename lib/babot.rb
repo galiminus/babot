@@ -1,94 +1,93 @@
-require 'gaston'
 require 'fileutils'
 require 'git'
 require 'twitter'
 require 'pathname'
 require 'yaml'
+require 'tempfile'
 require 'active_support/core_ext/string/inflections'
 
 class Babot
-  attr_accessor :name, :options
 
-  def Babot.configure!
-    @@config = YAML::load(File.open Pathname.new(ENV["HOME"]).join(".babot"))
-  end
+  class << self
 
-  def Babot.update
-    @@config['bots'].map do |name, options|
-      unless File.exists? root(name)
-        clone name, options[:repository]
+    def update
+      Dir["#{bots_root}/*"].each do |repository|
+        Git.open(repository).pull
       end
-      Babot.instanciate(name, options).pull!
+    end
+
+    def schedule
+      File.open(root.join("schedule.rb"), "w") do |schedule|
+        @@config['bots'].map do |name, options|
+          bot = instanciate name, options
+          schedule.puts <<-eos
+            every '#{bot.when}' do
+              rake 'bots:call[#{name}]'
+            end
+          eos
+        end
+        Whenever::CommandLine.execute(file: schedule.path, write: true)
+      end
+    end
+
+    def add(name, repository)
+      Git.clone repository, bot_root(name)
+      File.open(root.join("config", name).to_s, 'w') do |config|
+        config.write({ 'consumer_key'           => "",
+                       'consumer_secret'        => "",
+                       'oauth_token'            => "",
+                       'oauth_token_secret'     => "" }.to_yaml)
+      end
+    end
+
+    def delete(name)
+      FileUtils.rm_rf bot_root(name)
+      FileUtils.rm_f config_root.join(name)
+    end
+
+    def configure(name)
+      system "#{ENV['EDITOR'] || 'nano'} #{root.join("config", name).to_s}"
+    end
+
+    def call(name)
+      Twitter.update dry(name)
+    end
+
+    def dry(name)
+      instanciate(name, YAML.load_file(config_root.join name)).call
+    end
+
+    def instanciate(name, config)
+      require Babot.bot_root(name).join('lib', name)
+
+      Babot::const_get(name.camelize).new(name)
+    rescue StandardError, ScriptError => error
+      puts error, error.backtrace
+    end
+
+    def root
+      Pathname.new(ENV["HOME"]).join ".babot"
+    end
+
+    def bots_root
+      root.join("bots")
+    end
+
+    def config_root
+      root.join("config")
+    end
+
+    def bot_root(name)
+      bots_root.join name
     end
   end
 
-  def Babot.schedule
-    schedule = File.open("bots/schedule.rb", "w")
-    @@config['bots'].map do |name, options|
-      bot = Babot.instanciate name, options
-      schedule.puts <<-eos
-      every '#{bot.when}' do
-        rake 'bots:call[#{name}]'
-      end
-      eos
-    end
-    schedule.close
-  end
-
-  def Babot.call(name)
-    bot = Babot.instanciate(name, @@config['bots'][name])
-    bot.configure
-    Twitter.update bot.call
-  end
-
-  def Babot.instanciate(name, options)
-    require "./#{Babot.path(name)}"
-
-    Babot::const_get(name.camelize).new(name, options)
-  rescue StandardError, ScriptError => error
-    puts error, error.backtrace
-  end
-
-  def Babot.clone(name, repository)
-    Git.clone repository, Pathname.new("bots").join(name)
-  end
-
-  def Babot.root(name)
-    Pathname.new("bots").join name
-  end
-
-  def Babot.path(name)
-    Babot.root(name).join "lib", name
-  end
-
-  def initialize(name, options)
-    @name = name
-    @options = options
-  end
-
-  def pull!
-    git.pull
-  end
-
-  def configure
+  def initialize(options)
     Twitter.configure do |config|
-      config.consumer_key = options[:consumer_key]
-      config.consumer_secret = options[:consumer_secret]
-      config.oauth_token = options[:oauth_token]
-      config.oauth_token_secret = options[:oauth_token_secret]
+      config.consumer_key = options['consumer_key']
+      config.consumer_secret = options['consumer_secret']
+      config.oauth_token = options['oauth_token']
+      config.oauth_token_secret = options['oauth_token_secret']
     end
-  end
-
-  protected
-  def root
-    Babot.root name
-  end
-
-  def path
-    Babot.path name
-  end
-
-  def git
-    @git ||= Git.open(root)
   end
 end
