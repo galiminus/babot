@@ -59,6 +59,11 @@ class BabotRunner < Boson::Runner
   def install(path)
     Babot.install path
   end
+
+  desc "Push to remote server [remote]"
+  def push(remote)
+    Babot.push remote
+  end
 end
 
 BabotRunner.start

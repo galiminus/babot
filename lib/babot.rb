@@ -73,6 +73,10 @@ class Babot
       run "cd ~ && rm -rf '.babot' && tar -xf '#{Dir.pwd}/#{dump}'"
     end
 
+    def push(remote)
+      run "scp -qr '#{root}' '#{remote}:~/.' && ssh '#{remote}' 'babot schedule'"
+    end
+
     def instanciate(name)
       require Babot.root.join("bots", name, 'lib', name)
 
