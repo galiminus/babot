@@ -1,10 +1,12 @@
 #!/usr/bin/env ruby
 
 require 'boson/runner'
-require 'pathname'
 
 $:.unshift File.expand_path("../../lib", __FILE__)
 require 'babot'
+
+FileUtils.mkdir_p [Babot.root.join("config"),
+                   Babot.root.join("bots")]
 
 class BabotRunner < Boson::Runner
   desc "Update bots"
@@ -42,6 +44,11 @@ class BabotRunner < Boson::Runner
   desc "Configure bot [name]"
   def configure(name)
     Babot.configure name
+  end
+
+  desc "List bots"
+  def list
+    puts Babot.list
   end
 end
 

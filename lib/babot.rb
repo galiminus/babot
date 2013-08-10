@@ -4,6 +4,7 @@ require 'twitter'
 require 'pathname'
 require 'yaml'
 require 'tempfile'
+require 'whenever'
 require 'active_support/core_ext/string/inflections'
 
 class Babot
@@ -11,27 +12,27 @@ class Babot
   class << self
 
     def update
-      Dir["#{bots_root}/*"].each do |repository|
+      Dir["#{root}/bots/*"].each do |repository|
         Git.open(repository).pull
       end
     end
 
     def schedule
-      File.open(root.join("schedule.rb"), "w") do |schedule|
-        @@config['bots'].map do |name, options|
-          bot = instanciate name, options
-          schedule.puts <<-eos
+      cron = File.open root.join("schedule.rb"), "w"
+      list.map { |name| instanciate(name) }.each do |bot|
+        cron.puts <<-eos
             every '#{bot.when}' do
-              rake 'bots:call[#{name}]'
+              command 'babot call #{bot.name}'
             end
           eos
-        end
-        Whenever::CommandLine.execute(file: schedule.path, write: true)
       end
+      cron.close
+
+      Whenever::CommandLine.execute(file: cron.path, write: true)
     end
 
     def add(name, repository)
-      Git.clone repository, bot_root(name)
+      Git.clone repository, root.join("bots", name)
       File.open(root.join("config", name).to_s, 'w') do |config|
         config.write({ 'consumer_key'           => "",
                        'consumer_secret'        => "",
@@ -41,8 +42,8 @@ class Babot
     end
 
     def delete(name)
-      FileUtils.rm_rf bot_root(name)
-      FileUtils.rm_f config_root.join(name)
+      FileUtils.rm_rf root.join("bots", name)
+      FileUtils.rm_f root.join("config", name)
     end
 
     def configure(name)
@@ -53,14 +54,19 @@ class Babot
       Twitter.update dry(name)
     end
 
-    def dry(name)
-      instanciate(name, YAML.load_file(config_root.join name)).call
+    def list
+      Dir.entries(root.join "bots").reject { |name| name =~ /^\./ }
     end
 
-    def instanciate(name, config)
-      require Babot.bot_root(name).join('lib', name)
+    def dry(name)
+      instanciate(name).call
+    end
 
-      Babot::const_get(name.camelize).new(name)
+    def instanciate(name)
+      require Babot.root.join("bots", name, 'lib', name)
+
+      options = YAML.load_file(root.join("config", name))
+      Babot::const_get(name.camelize).new(name, options)
     rescue StandardError, ScriptError => error
       puts error, error.backtrace
     end
@@ -68,21 +74,13 @@ class Babot
     def root
       Pathname.new(ENV["HOME"]).join ".babot"
     end
-
-    def bots_root
-      root.join("bots")
-    end
-
-    def config_root
-      root.join("config")
-    end
-
-    def bot_root(name)
-      bots_root.join name
-    end
   end
 
-  def initialize(options)
+  attr_accessor :name
+
+  def initialize(name, options)
+    @name = name
+
     Twitter.configure do |config|
       config.consumer_key = options['consumer_key']
       config.consumer_secret = options['consumer_secret']
