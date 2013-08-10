@@ -9,9 +9,9 @@ FileUtils.mkdir_p [Babot.root.join("config"),
                    Babot.root.join("bots")]
 
 class BabotRunner < Boson::Runner
-  desc "Update bots"
-  def update
-    Babot.update
+  desc "Update bot [name]"
+  def update(name)
+    Babot.update(name)
   end
 
   desc "Update crontab"
@@ -33,7 +33,6 @@ class BabotRunner < Boson::Runner
   def add(name, repository)
     Babot.add name, repository
     Babot.configure name
-    Babot.update
   end
 
   desc "Delete bot [name]"

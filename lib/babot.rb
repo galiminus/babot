@@ -6,15 +6,17 @@ require 'yaml'
 require 'tempfile'
 require 'whenever'
 require 'active_support/core_ext/string/inflections'
+require 'bundler/cli'
 
 class Babot
 
   class << self
 
-    def update
-      Dir["#{root}/bots/*"].each do |repository|
-        Git.open(repository).pull
-      end
+    def update(name)
+      git = Git.open(root.join("bots", name), :log => Logger.new(STDOUT))
+      git.fetch "origin"
+      git.merge "origin", "master"
+      system "cd #{root.join('bots', name)} && bundle install"
     end
 
     def schedule
@@ -22,7 +24,7 @@ class Babot
       list.map { |name| instanciate(name) }.each do |bot|
         cron.puts <<-eos
             every '#{bot.when}' do
-              command 'babot call #{bot.name}'
+              command 'cd #{root.join('bots', bot.name)} && bundle exec babot call #{bot.name}'
             end
           eos
       end
