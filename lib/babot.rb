@@ -18,16 +18,17 @@ class Babot
     end
 
     def schedule
-      cron = File.open root.join("schedule.rb"), "w"
-      list.map { |name| instanciate(name) }.each do |bot|
-        cron.puts <<-eos
+      Tempfile.open('schedule') do |cron|
+        cron.puts(list.map { |name| instanciate(name) }.map do |bot|
+          <<-eos
             every '#{bot.when}' do
               command 'cd #{root.join('bots', bot.name)} && bundle exec babot call #{bot.name}'
             end
           eos
+        end)
+        cron.flush
+        run "whenever -w -f '#{cron.path}'"
       end
-      cron.close
-      run "whenever -w -f '#{cron.path}'"
     end
 
     def add(name, repository)
