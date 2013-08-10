@@ -65,11 +65,11 @@ class Babot
     end
 
     def dump
-      run "cd ~ && tar --exclude=.git -cf #{Dir.pwd}/babot-#{Time.now.to_i}.tar .babot"
+      run "cd ~ && tar --exclude=.git -cf '#{Dir.pwd}/babot-#{Time.now.to_i}.tar' .babot"
     end
 
     def install(dump)
-#      run "rm -rf #{root}"
+      run "cd ~ && rm -rf '.babot' && tar -xf '#{Dir.pwd}/#{dump}'"
     end
 
     def instanciate(name)
