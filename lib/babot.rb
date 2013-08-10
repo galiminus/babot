@@ -34,7 +34,11 @@ class Babot
     end
 
     def add(name, repository)
-      Git.clone repository, root.join("bots", name)
+      if repository =~ /\//
+        FileUtils.ln_s repository, root.join("bots", name)
+      else
+        Git.clone repository, root.join("bots", name)
+      end
       File.open(root.join("config", name).to_s, 'w') do |config|
         config.write({ 'consumer_key'           => "",
                        'consumer_secret'        => "",
