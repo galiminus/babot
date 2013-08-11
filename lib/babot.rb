@@ -18,7 +18,7 @@ class Babot
     end
 
     def add(name, repository)
-      if repository =~ /^\//
+      if File.directory? repository
         cmd "ln -s '#{repository}' '#{root.join(name)}'"
       else
         cmd "git clone '#{repository}' '#{root.join(name)}'"
