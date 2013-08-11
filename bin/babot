@@ -1,62 +1,92 @@
 #!/usr/bin/env ruby
 
 require 'boson/runner'
+require 'pathname'
+require 'yaml'
 
 $:.unshift File.expand_path("../../lib", __FILE__)
 require 'babot'
 
-FileUtils.mkdir_p Babot.root
+DEFAULT_CONFIG = {
+  'consumer_key'           => "",
+  'consumer_secret'        => "",
+  'oauth_token'            => "",
+  'oauth_token_secret'     => ""
+}
 
 class BabotRunner < Boson::Runner
-  desc "Update bot [name]"
-  def update(name)
-    Babot.update(name)
-  end
-
-  desc "Update crontab"
-  def schedule
-    Babot.schedule
-  end
-
-  desc "Run bot [name]"
-  def run(name)
-    Babot.run name
+  def initialize
+    cmd "mkdir -p '#{root}'"
   end
 
   desc "Add bot [name] from [repository]"
   def add(name, repository)
-    Babot.add name, repository
-    Babot.configure name
+    if File.directory? repository
+      cmd "ln -s '#{File.realpath repository}' '#{root.join(name)}'"
+    else
+      cmd "git clone '#{repository}' '#{root.join(name)}'"
+    end
+    cmd "mkdir -p '#{Pathname.new(root).join name, 'config'}'"
+
+    File.open(root.join(name, "config", "credentials.yml").to_s, 'w') do |config|
+      config.write DEFAULT_CONFIG.to_yaml
+    end
+    configure name
+  end
+
+  desc "Update bot [name]"
+  def update(name)
+    cmd "cd '#{root.join(name)}' && git pull --rebase origin master && bundle install"
+  end
+
+  desc "Update crontab"
+  def schedule
+    `ls #{root}`.split.each do |name|
+      cmd "whenever -i #{name} -f #{root.join(name, 'config', 'schedule.rb')}"
+    end
+  end
+
+  desc "Run bot [name]"
+  def run(name)
+    options = YAML::load_file root.join(name, "config", 'credentials.yml')
+
+    Twitter.configure do |config|
+      config.consumer_key = options['consumer_key']
+      config.consumer_secret = options['consumer_secret']
+      config.oauth_token = options['oauth_token']
+      config.oauth_token_secret = options['oauth_token_secret']
+    end
+    load root.join(name, 'babot.run').to_s
   end
 
   desc "Delete bot [name]"
   def delete(name)
-    Babot.delete name
+    cmd "rm -rf '#{root.join name}' '#{root.join name, 'config', 'credentials.yml'}'"
   end
 
   desc "Configure bot [name]"
   def configure(name)
-    Babot.configure name
+    cmd "#{ENV['EDITOR'] || 'nano'} '#{root.join name, "config", 'credentials.yml'}'"
   end
 
   desc "List bots"
   def list
-    puts Babot.list
-  end
-
-  desc "Dump bots and configuration in tar file"
-  def dump
-    Babot.dump
-  end
-
-  desc "Install from tar file [path]"
-  def install(path)
-    Babot.install path
+    cmd "ls '#{root}'"
   end
 
   desc "Push to remote server [remote]"
   def push(remote)
-    Babot.push remote
+    cmd "scp -qr '#{root}' '#{remote}:~/.' && ssh '#{remote}' 'babot schedule'"
+  end
+
+  private
+  def root
+    Pathname.new(ENV["HOME"]).join ".babot"
+  end
+
+  def cmd(command)
+    puts command
+    system command
   end
 end
 
