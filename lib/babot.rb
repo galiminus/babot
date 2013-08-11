@@ -1,43 +1,29 @@
 require 'fileutils'
-require 'git'
 require 'twitter'
 require 'pathname'
 require 'yaml'
-require 'tempfile'
-require 'whenever'
-require 'active_support/core_ext/string/inflections'
-require 'bundler/cli'
 
 class Babot
 
   class << self
 
     def update(name)
-      run "cd '#{root.join('bots', name)}' && git pull --rebase origin master"
-      run "cd '#{root.join('bots', name)}' && bundle install"
+      cmd "cd '#{root.join(name)}' && git pull --rebase origin master && bundle install"
     end
 
     def schedule
-      Tempfile.open('schedule') do |cron|
-        cron.puts(list.map { |name| instanciate(name) }.map do |bot|
-          <<-eos
-            every '#{bot.when}' do
-              command 'cd #{root.join('bots', bot.name)} && bundle exec babot call #{bot.name}'
-            end
-          eos
-        end)
-        cron.flush
-        run "whenever -w -f '#{cron.path}'"
+      list.each do |name|
+        cmd "whenever -i #{name} -f #{root.join(name, 'config', 'schedule.rb')}"
       end
     end
 
     def add(name, repository)
-      if repository =~ /\//
-        run "ln -s '#{repository}' '#{root.join("bots", name)}'"
+      if repository =~ /^\//
+        cmd "ln -s '#{repository}' '#{root.join(name)}'"
       else
-        run "git clone '#{repository}' '#{root.join("bots", name)}'"
+        cmd "git clone '#{repository}' '#{root.join(name)}'"
       end
-      File.open(root.join("config", name).to_s, 'w') do |config|
+      File.open(root.join(name, "config", "credentials.yml").to_s, 'w') do |config|
         config.write({ 'consumer_key'           => "",
                        'consumer_secret'        => "",
                        'oauth_token'            => "",
@@ -46,66 +32,52 @@ class Babot
     end
 
     def delete(name)
-      run "rm -rf #{root.join('bots', name)} #{root.join('config', name)}"
+      cmd "rm -rf '#{root.join(name)}' '#{root.join(name, 'config', 'credentials.yml')}'"
     end
 
     def configure(name)
-      run "#{ENV['EDITOR'] || 'nano'} #{root.join("config", name).to_s}"
+      cmd "#{ENV['EDITOR'] || 'nano'} '#{root.join(name, "config", 'credentials.yml')}'"
     end
 
-    def call(name)
-      Twitter.update dry(name)
+    def run(name)
+      options = YAML::load_file root.join(name, "config", 'credentials.yml')
+
+      Twitter.configure do |config|
+        config.consumer_key = options['consumer_key']
+        config.consumer_secret = options['consumer_secret']
+        config.oauth_token = options['oauth_token']
+        config.oauth_token_secret = options['oauth_token_secret']
+      end
+      load Babot.root.join(name, 'babot.run').to_s
     end
 
     def list
-      Dir.entries(root.join "bots").reject { |name| name =~ /^\./ }
-    end
-
-    def dry(name)
-      instanciate(name).call
+      Dir.entries(root).reject { |name| name =~ /^\./ }
     end
 
     def dump
-      run "cd ~ && tar --exclude=.git -cf '#{Dir.pwd}/babot-#{Time.now.to_i}.tar' .babot"
+      cmd "cd ~ && tar --exclude=.git -cf '#{Dir.pwd}/babot-#{Time.now.to_i}.tar' .babot"
     end
 
     def install(dump)
-      run "cd ~ && rm -rf '.babot' && tar -xf '#{Dir.pwd}/#{dump}'"
+      cmd "cd ~ && rm -rf '.babot' && tar -xf '#{Dir.pwd}/#{dump}'"
     end
 
     def push(remote)
-      run "scp -qr '#{root}' '#{remote}:~/.' && ssh '#{remote}' 'babot schedule'"
-    end
-
-    def instanciate(name)
-      require Babot.root.join("bots", name, 'lib', name)
-
-      options = YAML.load_file(root.join("config", name))
-      Babot::const_get(name.camelize).new(name, options)
-    rescue StandardError, ScriptError => error
-      puts error, error.backtrace
+      cmd "scp -qr '#{root}' '#{remote}:~/.' && ssh '#{remote}' 'babot schedule'"
     end
 
     def root
       Pathname.new(ENV["HOME"]).join ".babot"
     end
 
-    def run(command)
+    def cmd(command)
       puts command
       system command
     end
-  end
 
-  attr_accessor :name
-
-  def initialize(name, options)
-    @name = name
-
-    Twitter.configure do |config|
-      config.consumer_key = options['consumer_key']
-      config.consumer_secret = options['consumer_secret']
-      config.oauth_token = options['oauth_token']
-      config.oauth_token_secret = options['oauth_token_secret']
+    def run!
+      Twitter.update new.call
     end
   end
 end

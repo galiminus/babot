@@ -5,8 +5,7 @@ require 'boson/runner'
 $:.unshift File.expand_path("../../lib", __FILE__)
 require 'babot'
 
-FileUtils.mkdir_p [Babot.root.join("config"),
-                   Babot.root.join("bots")]
+FileUtils.mkdir_p Babot.root
 
 class BabotRunner < Boson::Runner
   desc "Update bot [name]"
@@ -19,14 +18,9 @@ class BabotRunner < Boson::Runner
     Babot.schedule
   end
 
-  desc "Call bot [name]"
-  def call(name)
-    Babot.call name
-  end
-
-  desc "Call bot [name] without update"
-  def dry(name)
-    puts Babot.dry(name)
+  desc "Run bot [name]"
+  def run(name)
+    Babot.run name
   end
 
   desc "Add bot [name] from [repository]"
