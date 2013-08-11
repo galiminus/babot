@@ -76,7 +76,9 @@ class BabotRunner < Boson::Runner
 
   desc "Push to remote server [remote]"
   def push(remote)
-    cmd "scp -qr '#{root}' '#{remote}:~/.' && ssh '#{remote}' 'babot schedule'"
+    cmd "ssh '#{remote}' 'rm -rf ~/.babot'"
+    cmd "scp -qr '#{root}' '#{remote}:~/.'"
+    cmd "ssh '#{remote}' 'babot schedule'"
   end
 
   private
