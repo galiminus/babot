@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'babot'
-  s.version     = '0.3.1'
-  s.date        = '2013-09-08'
+  s.version     = '0.4.0'
+  s.date        = '2013-11-08'
   s.summary     = "Babot"
   s.description = "A simple tool to manage Twitter bots"
   s.authors     = ["Victor Goya"]
