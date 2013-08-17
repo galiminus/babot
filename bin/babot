@@ -80,6 +80,9 @@ class BabotRunner < Boson::Runner
   def push(remote)
     cmd "ssh '#{remote}' 'rm -rf ~/.babot'"
     cmd "scp -qr '#{root}' '#{remote}:~/.'"
+    `ls -1 '#{root}'`.split.each do |name|
+      cmd "ssh '#{remote}' 'cd ~/.babot/#{name} && bundle install'"
+    end
     cmd "ssh '#{remote}' 'babot schedule'"
   end
 
