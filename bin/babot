@@ -19,8 +19,10 @@ class BabotRunner < Boson::Runner
     cmd "mkdir -p '#{root}'"
   end
 
-  desc "Add bot [name] from [repository]"
-  def add(name, repository)
+  desc "Add bot from [repository]"
+  def add(repository)
+    name = File.basename repository
+
     if File.directory? repository
       cmd "ln -s '#{File.realpath repository}' '#{root.join(name)}'"
     else
@@ -71,7 +73,7 @@ class BabotRunner < Boson::Runner
 
   desc "List bots"
   def list
-    cmd "ls '#{root}'"
+    cmd "ls -1 '#{root}'"
   end
 
   desc "Push to remote server [remote]"
