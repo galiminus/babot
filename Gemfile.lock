@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    babot (0.4.1)
+    babot (0.6.0)
       boson
       twitter
       whenever
@@ -20,7 +20,7 @@ GEM
     chronic (0.9.1)
     faraday (0.8.8)
       multipart-post (~> 1.2.0)
-    i18n (0.6.4)
+    i18n (0.6.5)
     minitest (4.7.5)
     multi_json (1.7.9)
     multipart-post (1.2.0)

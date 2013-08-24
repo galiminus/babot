@@ -33,7 +33,6 @@ class BabotRunner < Boson::Runner
     File.open(root.join(name, "config", "credentials.yml").to_s, 'w') do |config|
       config.write DEFAULT_CONFIG.to_yaml
     end
-    configure name
   end
 
   desc "Update bot [name]"
@@ -41,24 +40,16 @@ class BabotRunner < Boson::Runner
     cmd "cd '#{root.join(name)}' && git pull --rebase origin master && bundle install"
   end
 
-  desc "Update crontab"
-  def schedule
-    `ls #{root}`.split.each do |name|
-      cmd "whenever -i #{name} -f #{root.join(name, 'config', 'schedule.rb')}"
-    end
+  desc "Set run date of the bot [name] with [cron] syntax with [options]"
+  def schedule(name, cron, *options)
+    cmd "printf \"every '#{cron}' do\ncommand 'babot run #{name} #{options.join(' ')}'\nend\" > #{root.join name, 'config', 'schedule.rb'}"
   end
 
   desc "Run bot [name]"
   def run(name)
-    options = YAML::load_file root.join(name, "config", 'credentials.yml')
-
-    Twitter.configure do |config|
-      config.consumer_key = options['consumer_key']
-      config.consumer_secret = options['consumer_secret']
-      config.oauth_token = options['oauth_token']
-      config.oauth_token_secret = options['oauth_token_secret']
+    Dir.chdir root.join(name) do
+      load root.join(name, 'babot.run').to_s
     end
-    load root.join(name, 'babot.run').to_s
   end
 
   desc "Delete bot [name]"
@@ -81,7 +72,7 @@ class BabotRunner < Boson::Runner
     cmd "ssh '#{remote}' 'rm -rf ~/.babot'"
     cmd "scp -qr '#{root}' '#{remote}:~/.'"
     `ls -1 '#{root}'`.split.each do |name|
-      cmd "ssh '#{remote}' 'cd ~/.babot/#{name} && bundle install'"
+      cmd "ssh '#{remote}' 'cd ~/.babot/#{name} && bundle install && whenever -i #{name} -f ~/.babot/#{name}/config/schedule.rb'"
     end
     cmd "ssh '#{remote}' 'babot schedule'"
   end
