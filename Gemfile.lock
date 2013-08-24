@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    babot (0.6.0)
+    babot (0.6.1)
       boson
       twitter
       whenever

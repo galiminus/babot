@@ -42,14 +42,12 @@ class BabotRunner < Boson::Runner
 
   desc "Set run date of the bot [name] with [cron] syntax with [options]"
   def schedule(name, cron, *options)
-    cmd "printf \"every '#{cron}' do\ncommand 'babot run #{name} #{options.join(' ')}'\nend\" > #{root.join name, 'config', 'schedule.rb'}"
+    cmd "printf \"every '#{cron}' do\ncommand 'babot run #{name} \"#{options.join("\" \"")}\"'\nend\" > #{root.join name, 'config', 'schedule.rb'}"
   end
 
   desc "Run bot [name]"
-  def run(name)
-    Dir.chdir root.join(name) do
-      load root.join(name, 'babot.run').to_s
-    end
+  def run(name, *options)
+    cmd "cd '#{root.join name}' && bundle exec ruby 'babot.run' \"#{options.join("\" \"")}\""
   end
 
   desc "Delete bot [name]"
