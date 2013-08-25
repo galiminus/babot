@@ -19,10 +19,8 @@ class BabotRunner < Boson::Runner
     cmd "mkdir -p '#{root}'"
   end
 
-  desc "Add bot from [repository]"
-  def add(repository)
-    name = File.basename repository
-
+  desc "Add bot [name] from [repository]"
+  def add(name, repository)
     if File.directory? repository
       cmd "ln -s '#{File.realpath repository}' '#{root.join(name)}'"
     else
